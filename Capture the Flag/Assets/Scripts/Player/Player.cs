@@ -22,6 +22,12 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
     }
 
+    private void Start()
+    {
+        //esto deberá ser una rpc para funcionar de manera segura probablemente
+        SetSpawnPosition();
+    }
+
     private void OnEnable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
@@ -65,6 +71,15 @@ public class Player : NetworkBehaviour
     void ConfigureControls()
     {
         GetComponent<InputHandler>().enabled = true;
+    }
+
+    void SetSpawnPosition()
+    {
+        // busca uno de los puntos de aparición que hay por el mapa y coloca al jugador en él
+        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
+        int pos = Random.Range(0, spawnPositions.transform.childCount);
+        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
+        transform.position = spawnPosition;
     }
 
     #endregion
