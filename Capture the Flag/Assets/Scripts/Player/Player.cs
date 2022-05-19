@@ -20,6 +20,7 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
+        
     }
 
     private void Start()
@@ -75,11 +76,9 @@ public class Player : NetworkBehaviour
 
     void SetSpawnPosition()
     {
-        // busca uno de los puntos de aparición que hay por el mapa y coloca al jugador en él
-        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
-        int pos = Random.Range(0, spawnPositions.transform.childCount);
-        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
-        transform.position = spawnPosition;
+        if (IsLocalPlayer)
+            // pide al servidor que busque uno de los puntos de aparición que hay por el mapa y coloque al jugador en él
+            SetPlayerSpawnPositionServerRpc();
     }
 
     #endregion
@@ -92,7 +91,17 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void UpdatePlayerStateServerRpc(PlayerState state)
     {
+        
         State.Value = state;
+    }
+
+    [ServerRpc]
+    public void SetPlayerSpawnPositionServerRpc()
+    {
+        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
+        int pos = Random.Range(0, spawnPositions.transform.childCount);
+        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
+        transform.position = spawnPosition;
     }
 
     #endregion
