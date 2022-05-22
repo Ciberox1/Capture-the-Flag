@@ -58,7 +58,11 @@ public class Player : NetworkBehaviour
     void ConfigurePlayer()
     {
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
+        VisualizeCrossHead();
     }
+
+    
 
     void ConfigureCamera()
     {
@@ -79,6 +83,11 @@ public class Player : NetworkBehaviour
         if (IsLocalPlayer)
             // pide al servidor que busque uno de los puntos de aparición que hay por el mapa y coloque al jugador en él
             SetPlayerSpawnPositionServerRpc();
+    }
+
+    void VisualizeCrossHead()
+    {
+        this.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
     }
 
     #endregion
