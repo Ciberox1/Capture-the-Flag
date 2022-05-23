@@ -10,7 +10,10 @@ public class UIManager : MonoBehaviour
 
     #region Variables
 
+    [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
+    readonly ushort port = 7777;
+
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
     [Header("Main Menu")]
@@ -30,7 +33,7 @@ public class UIManager : MonoBehaviour
 
     private void Awake()
     {
-        transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        transport = (UnityTransport)networkManager.NetworkConfig.NetworkTransport;
     }
 
     private void Start()
@@ -110,11 +113,13 @@ public class UIManager : MonoBehaviour
     private void StartClient()
     {
         var ip = inputFieldIP.text;
+
         if (!string.IsNullOrEmpty(ip))
         {
-            transport.ConnectionData.Address = ip;
+            transport.SetConnectionData(ip, port);
         }
         NetworkManager.Singleton.StartClient();
+
         ActivateInGameHUD();
     }
 
