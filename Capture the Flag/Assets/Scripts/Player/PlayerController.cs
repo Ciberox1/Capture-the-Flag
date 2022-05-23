@@ -116,7 +116,7 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
-        if (player.State.Value == PlayerState.Grounded)
+        if (IsGrounded)
         {
             _jumpsLeft = maxJumps;
         }
