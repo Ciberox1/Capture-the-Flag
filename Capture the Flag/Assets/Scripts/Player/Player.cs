@@ -99,8 +99,7 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     [ServerRpc]
     public void UpdatePlayerStateServerRpc(PlayerState state)
-    {
-        
+    {       
         State.Value = state;
     }
 

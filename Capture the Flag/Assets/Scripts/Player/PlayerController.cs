@@ -80,6 +80,7 @@ public class PlayerController : NetworkBehaviour
         filter.minNormalAngle = 45;
         filter.maxNormalAngle = 135;
         filter.useNormalAngle = true;
+        
         filter.layerMask = _layer;
     }
 
@@ -116,7 +117,11 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
-        if (IsGrounded)
+        if (player.State.Value == PlayerState.Grounded && _jumpsLeft == 1)
+        {
+
+        }
+        else if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
         }
@@ -135,6 +140,8 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void UpdatePlayerPositionServerRpc(Vector2 input)
     {
+
+        
         if (IsGrounded)
         {
             player.State.Value = PlayerState.Grounded;
@@ -144,6 +151,7 @@ public class PlayerController : NetworkBehaviour
         {
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
         }
+
     }
 
     #endregion
