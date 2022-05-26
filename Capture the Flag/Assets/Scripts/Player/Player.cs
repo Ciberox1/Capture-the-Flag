@@ -10,6 +10,7 @@ public class Player : NetworkBehaviour
 
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
+    public NetworkVariable<int> playerHealth;
 
     #endregion
 
@@ -20,12 +21,13 @@ public class Player : NetworkBehaviour
         NetworkManager.OnClientConnectedCallback += ConfigurePlayer;
 
         State = new NetworkVariable<PlayerState>();
+        playerHealth = new NetworkVariable<int>(6);
+
         
     }
 
     private void Start()
     {
-        //esto deberá ser una rpc para funcionar de manera segura probablemente
         SetSpawnPosition();
     }
 
@@ -33,12 +35,14 @@ public class Player : NetworkBehaviour
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
+        playerHealth.OnValueChanged += OnPlayerHealthValueChanged;
     }
 
     private void OnDisable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged -= OnPlayerStateValueChanged;
+        playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
     }
 
     #endregion
@@ -61,8 +65,6 @@ public class Player : NetworkBehaviour
         // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
         VisualizeCrossHead();
     }
-
-    
 
     void ConfigureCamera()
     {
@@ -87,6 +89,7 @@ public class Player : NetworkBehaviour
 
     void VisualizeCrossHead()
     {
+        // El hijo 0 de player es el crosshead
         this.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
     }
 
@@ -124,8 +127,16 @@ public class Player : NetworkBehaviour
         State.Value = current;
     }
 
+    private void OnPlayerHealthValueChanged(int previousValue, int newValue)
+    {
+        playerHealth.Value = newValue;
+        print(playerHealth.Value);
+    }
+
     #endregion
 }
+
+
 
 public enum PlayerState
 {
