@@ -80,6 +80,7 @@ public class PlayerController : NetworkBehaviour
         filter.minNormalAngle = 45;
         filter.maxNormalAngle = 135;
         filter.useNormalAngle = true;
+        
         filter.layerMask = _layer;
     }
 
@@ -169,7 +170,8 @@ public class PlayerController : NetworkBehaviour
         spriteRenderer.flipX = current;
     }
 
-    bool IsGrounded => collider.IsTouching(filter);
+    // comprobamos la aceleración en el eje y para evitar falsos positivos
+    bool IsGrounded => collider.IsTouching(filter) && rb.velocity.y == 0;
 
     #endregion
 

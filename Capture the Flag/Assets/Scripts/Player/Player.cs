@@ -58,7 +58,11 @@ public class Player : NetworkBehaviour
     void ConfigurePlayer()
     {
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
+        // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
+        VisualizeCrossHead();
     }
+
+    
 
     void ConfigureCamera()
     {
@@ -81,6 +85,11 @@ public class Player : NetworkBehaviour
             SetPlayerSpawnPositionServerRpc();
     }
 
+    void VisualizeCrossHead()
+    {
+        this.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
+    }
+
     #endregion
 
     #region RPC
@@ -90,8 +99,7 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/serverrpc
     [ServerRpc]
     public void UpdatePlayerStateServerRpc(PlayerState state)
-    {
-        
+    {       
         State.Value = state;
     }
 
