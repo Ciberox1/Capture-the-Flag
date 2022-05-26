@@ -117,11 +117,7 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PerformJumpServerRpc()
     {
-        if (player.State.Value == PlayerState.Grounded && _jumpsLeft == 1)
-        {
-
-        }
-        else if (player.State.Value == PlayerState.Grounded)
+        if (player.State.Value == PlayerState.Grounded)
         {
             _jumpsLeft = maxJumps;
         }
@@ -140,8 +136,6 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void UpdatePlayerPositionServerRpc(Vector2 input)
     {
-
-        
         if (IsGrounded)
         {
             player.State.Value = PlayerState.Grounded;
@@ -151,7 +145,6 @@ public class PlayerController : NetworkBehaviour
         {
             rb.velocity = new Vector2(input.x * speed, rb.velocity.y);
         }
-
     }
 
     #endregion
@@ -177,7 +170,8 @@ public class PlayerController : NetworkBehaviour
         spriteRenderer.flipX = current;
     }
 
-    bool IsGrounded => collider.IsTouching(filter);
+    // comprobamos la aceleración en el eje y para evitar falsos positivos
+    bool IsGrounded => collider.IsTouching(filter) && rb.velocity.y == 0;
 
     #endregion
 
