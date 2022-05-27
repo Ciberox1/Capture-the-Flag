@@ -10,11 +10,15 @@ public class UIManager : MonoBehaviour
 
     #region Variables
 
+    private static UIManager _instance;
+
     [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
     readonly ushort port = 7777;
 
     [SerializeField] Sprite[] hearts = new Sprite[3];
+
+    private bool hosting = false;
 
     [Header("Main Menu")]
     [SerializeField] private GameObject mainMenu;
@@ -23,11 +27,39 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonServer;
     [SerializeField] private InputField inputFieldIP;
 
+    [Header("Lobby")]
+    [SerializeField] Sprite[] characters = new Sprite[5];
+    [SerializeField] private GameObject lobby;
+    [SerializeField] private Button buttonRight;
+    [SerializeField] private Button buttonLeft;
+    [SerializeField] private Button buttonReady;
+    [SerializeField] private Image characterImage;
+    public int characterIndex = 0;
+    [SerializeField] private InputField inputFieldName;
+
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
-
+    
     #endregion
+
+    public static UIManager Singleton
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                UIManager[] objs = FindObjectsOfType<UIManager>();
+                if (objs.Length > 0)
+                    _instance = objs[0];
+                if (_instance == null)
+                {
+                    UIManager obj = new UIManager();
+                }
+            }
+            return _instance;
+        }
+    }
 
     #region Unity Event Functions
 
@@ -41,6 +73,9 @@ public class UIManager : MonoBehaviour
         buttonHost.onClick.AddListener(() => StartHost());
         buttonClient.onClick.AddListener(() => StartClient());
         buttonServer.onClick.AddListener(() => StartServer());
+        buttonRight.onClick.AddListener(() => ChangeCharacter(0));
+        buttonLeft.onClick.AddListener(() => ChangeCharacter(1));
+        buttonReady.onClick.AddListener(() => PlayerReady());
         ActivateMainMenu();
     }
 
@@ -54,30 +89,35 @@ public class UIManager : MonoBehaviour
         inGameHUD.SetActive(false);
     }
 
+
+    private void ActivateLobby()
+    {
+        characterImage.sprite = characters[characterIndex];
+        mainMenu.SetActive(false);
+        lobby.SetActive(true);
+    }
+
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
         inGameHUD.SetActive(true);
-
-        // for test purposes
-        UpdateLifeUI(Random.Range(1, 6));
     }
 
     public void UpdateLifeUI(int hitpoints)
     {
         switch (hitpoints)
         {
-            case 6:
+            case 0:
                 heartsUI[0].texture = hearts[2].texture;
                 heartsUI[1].texture = hearts[2].texture;
                 heartsUI[2].texture = hearts[2].texture;
                 break;
-            case 5:
+            case 1:
                 heartsUI[0].texture = hearts[1].texture;
                 heartsUI[1].texture = hearts[2].texture;
                 heartsUI[2].texture = hearts[2].texture;
                 break;
-            case 4:
+            case 2:
                 heartsUI[0].texture = hearts[0].texture;
                 heartsUI[1].texture = hearts[2].texture;
                 heartsUI[2].texture = hearts[2].texture;
@@ -87,17 +127,62 @@ public class UIManager : MonoBehaviour
                 heartsUI[1].texture = hearts[1].texture;
                 heartsUI[2].texture = hearts[2].texture;
                 break;
-            case 2:
+            case 4:
                 heartsUI[0].texture = hearts[0].texture;
                 heartsUI[1].texture = hearts[0].texture;
                 heartsUI[2].texture = hearts[2].texture;
                 break;
-            case 1:
+            case 5:
                 heartsUI[0].texture = hearts[0].texture;
                 heartsUI[1].texture = hearts[0].texture;
                 heartsUI[2].texture = hearts[1].texture;
                 break;
+            case 6:
+                heartsUI[0].texture = hearts[0].texture;
+                heartsUI[1].texture = hearts[0].texture;
+                heartsUI[2].texture = hearts[0].texture;
+                break;
         }
+    }
+
+    private void ChangeCharacter(int v)
+    {
+        if (v == 0)
+        {
+            if (characterIndex == characters.Length - 1) {
+                characterImage.sprite = characters[0];
+                characterIndex = 0;
+            }
+            else
+            {
+                characterIndex++;
+                characterImage.sprite = characters[characterIndex];               
+            }
+        }
+        else
+        {
+            if (characterIndex == 0)
+            {
+                characterImage.sprite = characters[characters.Length - 1];
+                characterIndex = characters.Length - 1;
+            }
+            else
+            {
+                characterIndex--;
+                characterImage.sprite = characters[characterIndex];
+            }
+        }
+    }
+
+    private void PlayerReady()
+    {
+        lobby.SetActive(false);
+        inGameHUD.SetActive(true);
+
+        if (hosting)
+            NetworkManager.Singleton.StartHost();
+        else
+            NetworkManager.Singleton.StartClient();
     }
 
     #endregion
@@ -106,21 +191,23 @@ public class UIManager : MonoBehaviour
 
     private void StartHost()
     {
-        NetworkManager.Singleton.StartHost();
-        ActivateInGameHUD();
+        hosting = true;
+        //NetworkManager.Singleton.StartHost();
+        ActivateLobby();
     }
 
     private void StartClient()
     {
         var ip = inputFieldIP.text;
+        hosting = false;
 
         if (!string.IsNullOrEmpty(ip))
         {
             transport.SetConnectionData(ip, port);
         }
-        NetworkManager.Singleton.StartClient();
+        //NetworkManager.Singleton.StartClient();
 
-        ActivateInGameHUD();
+        ActivateLobby();
     }
 
     private void StartServer()
@@ -131,4 +218,5 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
+    
 }
