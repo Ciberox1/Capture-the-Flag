@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
 using Unity.Netcode;
+using UnityEngine.UI;
 
 public class Player : NetworkBehaviour
 {
@@ -16,6 +17,8 @@ public class Player : NetworkBehaviour
 
     AnimationHandler animationHandler;
     Animator animator;
+
+    [SerializeField] Text playerName;
 
     #endregion
 
@@ -77,7 +80,8 @@ public class Player : NetworkBehaviour
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
         VisualizeCrossHead();
-        SetCharacterServerRpc(UIManager.Singleton.characterIndex);      
+        SetCharacterServerRpc(UIManager.Singleton.characterIndex);
+        SetPlayerNameServerRpc();
     }
 
     void ConfigureCamera()
@@ -152,7 +156,11 @@ public class Player : NetworkBehaviour
         //SetCharacterClientRpc(chara);
     }
 
-    
+    [ServerRpc]
+    public void SetPlayerNameServerRpc()
+    {
+        playerName.text = UIManager.Singleton.inputFieldName.text;
+    }
 
     #endregion
 
@@ -190,7 +198,6 @@ public class Player : NetworkBehaviour
 
     private void SetCharacter(int character) 
     {
-        var animator = GetComponent<Animator>();
         animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
     }
 

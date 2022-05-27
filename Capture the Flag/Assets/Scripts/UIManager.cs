@@ -35,7 +35,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonReady;
     [SerializeField] private Image characterImage;
     public int characterIndex = 0;
-    [SerializeField] private InputField inputFieldName;
+    [SerializeField] public InputField inputFieldName;
 
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
@@ -178,6 +178,11 @@ public class UIManager : MonoBehaviour
     {
         lobby.SetActive(false);
         inGameHUD.SetActive(true);
+
+        if (inputFieldName.text == "")
+        {
+            inputFieldName.text = "Player_" + Random.Range(0, 9999);
+        }
 
         if (hosting)
             NetworkManager.Singleton.StartHost();
