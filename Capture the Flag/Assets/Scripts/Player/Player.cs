@@ -27,7 +27,7 @@ public class Player : NetworkBehaviour
 
         State = new NetworkVariable<PlayerState>();
         playerHealth = new NetworkVariable<int>(6);
-        character = new NetworkVariable<int>(UIManager.Singleton.characterIndex);
+        //character = new NetworkVariable<int>(UIManager.Singleton.characterIndex);
 
         animationHandler = GetComponent<AnimationHandler>();
         animator = GetComponent<Animator>();
@@ -45,7 +45,7 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         playerHealth.OnValueChanged += OnPlayerHealthValueChanged;
-        //character.OnValueChanged += OnCharacterValueChanged;
+        character.OnValueChanged += OnCharacterValueChanged;
     }
 
     private void OnDisable()
@@ -53,7 +53,7 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged -= OnPlayerStateValueChanged;
         playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
-        //character.OnValueChanged -= OnCharacterValueChanged;
+        character.OnValueChanged -= OnCharacterValueChanged;
     }
 
     #endregion
@@ -68,7 +68,8 @@ public class Player : NetworkBehaviour
             ConfigureCamera();
             ConfigureControls();
         }
-        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        SetCharacter(character.Value);
     }
 
     void ConfigurePlayer()
@@ -76,7 +77,7 @@ public class Player : NetworkBehaviour
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
         VisualizeCrossHead();
-        SetCharacterServerRpc();      
+        SetCharacterServerRpc(UIManager.Singleton.characterIndex);      
     }
 
     void ConfigureCamera()
@@ -144,10 +145,11 @@ public class Player : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void SetCharacterServerRpc()
+    public void SetCharacterServerRpc(int chara)
     {
-        character.Value = UIManager.Singleton.characterIndex;
-        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        character.Value = chara;
+        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        //SetCharacterClientRpc(chara);
     }
 
     
@@ -180,9 +182,16 @@ public class Player : NetworkBehaviour
 
     private void OnCharacterValueChanged(int previousValue, int newValue)
     {
-        character.Value = newValue;
+        //character.Value = newValue;
 
-        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        SetCharacter(newValue);
+    }
+
+    private void SetCharacter(int character) 
+    {
+        var animator = GetComponent<Animator>();
+        animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
     }
 
     #endregion
