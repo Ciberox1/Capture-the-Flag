@@ -24,7 +24,7 @@ class Bullet : NetworkBehaviour
                 GetComponent<NetworkObject>().Despawn();
             }
             // hace daño si choca con un jugador que no sea el que ha disparado y desaparece
-            if (target.OwnerClientId != playerOwner)
+            else if (target.OwnerClientId != playerOwner)
             {
                 target.playerHealth.Value--;
                 GetComponent<NetworkObject>().Despawn();

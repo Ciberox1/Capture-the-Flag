@@ -12,6 +12,11 @@ public class Player : NetworkBehaviour
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> playerHealth;
 
+    public NetworkVariable<int> character;
+
+    AnimationHandler animationHandler;
+    Animator animator;
+
     #endregion
 
     #region Unity Event Functions
@@ -22,8 +27,11 @@ public class Player : NetworkBehaviour
 
         State = new NetworkVariable<PlayerState>();
         playerHealth = new NetworkVariable<int>(6);
+        character = new NetworkVariable<int>(UIManager.Singleton.characterIndex);
 
-        
+        animationHandler = GetComponent<AnimationHandler>();
+        animator = GetComponent<Animator>();
+
     }
 
     private void Start()
@@ -31,11 +39,13 @@ public class Player : NetworkBehaviour
         SetSpawnPosition();
     }
 
+
     private void OnEnable()
     {
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged += OnPlayerStateValueChanged;
         playerHealth.OnValueChanged += OnPlayerHealthValueChanged;
+        //character.OnValueChanged += OnCharacterValueChanged;
     }
 
     private void OnDisable()
@@ -43,6 +53,7 @@ public class Player : NetworkBehaviour
         // https://docs-multiplayer.unity3d.com/netcode/current/api/Unity.Netcode.NetworkVariable-1.OnValueChangedDelegate
         State.OnValueChanged -= OnPlayerStateValueChanged;
         playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
+        //character.OnValueChanged -= OnCharacterValueChanged;
     }
 
     #endregion
@@ -57,6 +68,7 @@ public class Player : NetworkBehaviour
             ConfigureCamera();
             ConfigureControls();
         }
+        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
     }
 
     void ConfigurePlayer()
@@ -64,6 +76,7 @@ public class Player : NetworkBehaviour
         UpdatePlayerStateServerRpc(PlayerState.Grounded);
         // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
         VisualizeCrossHead();
+        SetCharacterServerRpc();      
     }
 
     void ConfigureCamera()
@@ -93,6 +106,15 @@ public class Player : NetworkBehaviour
         this.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
     }
 
+    void DieAndRespawn()
+    {
+        if (IsLocalPlayer) {
+            // se envia al jugador a una nueva posicion de respawn y se le cura
+            SetPlayerSpawnPositionServerRpc();
+            RestorePlayerServerRpc();
+        }
+    }
+
     #endregion
 
     #region RPC
@@ -115,6 +137,21 @@ public class Player : NetworkBehaviour
         transform.position = spawnPosition;
     }
 
+    [ServerRpc]
+    public void RestorePlayerServerRpc()
+    {
+        playerHealth.Value = 6;
+    }
+
+    [ServerRpc]
+    public void SetCharacterServerRpc()
+    {
+        character.Value = UIManager.Singleton.characterIndex;
+        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+    }
+
+    
+
     #endregion
 
     #endregion
@@ -129,8 +166,23 @@ public class Player : NetworkBehaviour
 
     private void OnPlayerHealthValueChanged(int previousValue, int newValue)
     {
-        playerHealth.Value = newValue;
-        print(playerHealth.Value);
+        if (IsLocalPlayer)
+        {
+            playerHealth.Value = newValue;
+            UIManager.Singleton.UpdateLifeUI(newValue);
+
+            if (newValue == 0)
+            {
+                DieAndRespawn();
+            }
+        }
+    }
+
+    private void OnCharacterValueChanged(int previousValue, int newValue)
+    {
+        character.Value = newValue;
+
+        GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
     }
 
     #endregion
