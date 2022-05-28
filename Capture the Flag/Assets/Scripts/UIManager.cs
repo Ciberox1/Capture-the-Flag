@@ -181,7 +181,7 @@ public class UIManager : MonoBehaviour
 
         if (inputFieldName.text == "")
         {
-            inputFieldName.text = "Player_" + Random.Range(0, 9999);
+            inputFieldName.text = "Player_Default";
         }
 
         if (hosting)

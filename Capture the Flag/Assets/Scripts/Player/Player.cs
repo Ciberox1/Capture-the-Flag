@@ -57,6 +57,7 @@ public class Player : NetworkBehaviour
         State.OnValueChanged -= OnPlayerStateValueChanged;
         playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
         character.OnValueChanged -= OnCharacterValueChanged;
+
     }
 
     #endregion
@@ -73,6 +74,7 @@ public class Player : NetworkBehaviour
         }
         //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
         SetCharacter(character.Value);
+        //SetName(playerName.text);
     }
 
     void ConfigurePlayer()
@@ -81,7 +83,8 @@ public class Player : NetworkBehaviour
         // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
         VisualizeCrossHead();
         SetCharacterServerRpc(UIManager.Singleton.characterIndex);
-        SetPlayerNameServerRpc();
+        SetPlayerNameServerRpc(UIManager.Singleton.inputFieldName.text);
+        //SetPlayerNameClientRpc(UIManager.Singleton.inputFieldName.text);
     }
 
     void ConfigureCamera()
@@ -157,9 +160,19 @@ public class Player : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void SetPlayerNameServerRpc()
+    public void SetPlayerNameServerRpc(string name)
     {
-        playerName.text = UIManager.Singleton.inputFieldName.text;
+        playerName.text = name;
+        SetPlayerNameClientRpc(name);
+    }
+
+    #endregion
+
+    #region ClientRPC
+    [ClientRpc]
+    public void SetPlayerNameClientRpc(string name)
+    {
+        playerName.text = name;
     }
 
     #endregion
@@ -199,6 +212,11 @@ public class Player : NetworkBehaviour
     private void SetCharacter(int character) 
     {
         animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
+    }
+
+    private void SetName(string name)
+    {
+        playerName.text = name;
     }
 
     #endregion
