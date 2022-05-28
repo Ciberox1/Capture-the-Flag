@@ -35,7 +35,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonReady;
     [SerializeField] private Image characterImage;
     public int characterIndex = 0;
-    [SerializeField] private InputField inputFieldName;
+    [SerializeField] public InputField inputFieldName;
 
     [Header("Waiting")]
     [SerializeField] private GameObject waiting;
@@ -189,23 +189,14 @@ public class UIManager : MonoBehaviour
 
     private void PlayerReady()
     {
-        // if (GameManager.Singleton.state.Value == GameManager.State.Game)
-        // {
-        //     lobby.SetActive(false);
-        //     waiting.SetActive(false);
-        //     inGameHUD.SetActive(true);
-        // }
-        // else if (GameManager.Singleton.state.Value == GameManager.State.Waiting) 
-        // {
-        //     lobby.SetActive(false);
-        //     waiting.SetActive(true);
-        //     inGameHUD.SetActive(false);
-        // }
-        //
-        // if (hosting)
-        //     NetworkManager.Singleton.StartHost();
-        // else
-        //     NetworkManager.Singleton.StartClient();
+        lobby.SetActive(false);
+        inGameHUD.SetActive(true);
+
+        if (inputFieldName.text == "")
+        {
+            inputFieldName.text = "Player_Default";
+        }
+
         if (hosting)
         {
             GameManager.Singleton.EnableApprovalCallback();
