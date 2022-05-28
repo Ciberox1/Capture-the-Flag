@@ -37,6 +37,10 @@ public class UIManager : MonoBehaviour
     public int characterIndex = 0;
     [SerializeField] private InputField inputFieldName;
 
+    [Header("Waiting")]
+    [SerializeField] private GameObject waiting;
+    [SerializeField] private Text waitingText;
+
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
@@ -97,9 +101,18 @@ public class UIManager : MonoBehaviour
         lobby.SetActive(true);
     }
 
+    private void ActivateWaiting() 
+    {
+        lobby.SetActive(false);
+        mainMenu.SetActive(false);
+        waiting.SetActive(true);
+    }
+
     private void ActivateInGameHUD()
     {
         mainMenu.SetActive(false);
+        lobby.SetActive(false);
+        waiting.SetActive(false);
         inGameHUD.SetActive(true);
     }
 
@@ -176,13 +189,56 @@ public class UIManager : MonoBehaviour
 
     private void PlayerReady()
     {
-        lobby.SetActive(false);
-        inGameHUD.SetActive(true);
-
+        // if (GameManager.Singleton.state.Value == GameManager.State.Game)
+        // {
+        //     lobby.SetActive(false);
+        //     waiting.SetActive(false);
+        //     inGameHUD.SetActive(true);
+        // }
+        // else if (GameManager.Singleton.state.Value == GameManager.State.Waiting) 
+        // {
+        //     lobby.SetActive(false);
+        //     waiting.SetActive(true);
+        //     inGameHUD.SetActive(false);
+        // }
+        //
+        // if (hosting)
+        //     NetworkManager.Singleton.StartHost();
+        // else
+        //     NetworkManager.Singleton.StartClient();
         if (hosting)
+        {
+            GameManager.Singleton.EnableApprovalCallback();
             NetworkManager.Singleton.StartHost();
-        else
+            ActivateInGameHUD();
+        }
+        else 
+        {
             NetworkManager.Singleton.StartClient();
+            ActivateInGameHUD();
+        }
+    }
+
+    public void WaitingForPlayers(int playerReady, int playeTotal) 
+    {
+        WaitingForPlayersServerRpc(playerReady, playeTotal);
+    }
+
+    [ServerRpc]
+    private void WaitingForPlayersServerRpc(int playerReady, int playeTotal)
+    {
+        waitingText.text = "Hay " + playerReady + "/" + playeTotal + " jugadores listos";
+    }
+
+    public void UpdateTimer(int timer) 
+    {
+        UpdateTimerServerRpc(timer);
+    }
+
+    [ServerRpc]
+    private void UpdateTimerServerRpc(int timer)
+    {
+        waitingText.text = "La partida empieza en " + timer;
     }
 
     #endregion
