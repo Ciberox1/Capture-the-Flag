@@ -68,7 +68,7 @@ public class GameManager : NetworkBehaviour
 
     public Dictionary<int, Player> GetPlayers()
     {
-        return playerNames;
+        return players;
     }
 
     public void SetPlayerNames()
@@ -76,8 +76,9 @@ public class GameManager : NetworkBehaviour
         Dictionary<int, Player> currentPlayers = GetPlayers();
         foreach (int playerId in currentPlayers.Keys)
         {
-            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString(); 
+            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString();
         }
+    }
 
     private IEnumerator EmpezarPartida() 
     {
