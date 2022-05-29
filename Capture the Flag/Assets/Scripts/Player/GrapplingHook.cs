@@ -16,7 +16,7 @@ public class GrapplingHook : NetworkBehaviour
     LayerMask layer;
     Player player;
 
-    readonly float climbSpeed = 2f;
+    readonly float climbSpeed = 3f;
     readonly float swingForce = 80f;
 
     Rigidbody2D rb;
@@ -87,7 +87,7 @@ public class GrapplingHook : NetworkBehaviour
     {
         if (player.State.Value == PlayerState.Hooked)
         {
-            ClimbRope(input.y);
+            ClimbRope(input.y); // multiplicamos por la velocidad de escalada para no ir demasiado lento
             UpdateRopeClientRpc();
 
         }
@@ -117,7 +117,8 @@ public class GrapplingHook : NetworkBehaviour
         if (hit.collider)
         {
             var anchor = hit.centroid;
-            rope.connectedAnchor = anchor;
+            rope.enabled = true; // hay que activar esto en el servidor para que el jugador no caiga hacia el suelo aun habiendo usado el gancho
+            rope.connectedAnchor = anchor;         
             ropeRenderer.SetPosition(1, anchor);
             UpdateAnchorClientRpc(hit.centroid);
             player.State.Value = PlayerState.Hooked;
