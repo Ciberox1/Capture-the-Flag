@@ -18,12 +18,6 @@ public class GameManager : NetworkBehaviour
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
 
-    public void EnableApprovalCallback()
-    {
-        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-    }
-
-
     public static GameManager Singleton
     {
         get
@@ -41,6 +35,11 @@ public class GameManager : NetworkBehaviour
             return _instance;
         }
     }
+
+    public void EnableApprovalCallback()
+    {
+        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
+    } 
 
     public void AddPlayer(int playerId, Player player)
     {
@@ -60,7 +59,7 @@ public class GameManager : NetworkBehaviour
                 else 
                 {
                     //Hacer que impriman el esperar a jugadores
-                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Count);
+                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
                 }
             }
         }

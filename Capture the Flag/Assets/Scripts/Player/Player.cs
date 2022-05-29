@@ -37,7 +37,9 @@ public class Player : NetworkBehaviour
 
         animationHandler = GetComponent<AnimationHandler>();
         animator = GetComponent<Animator>();
-        //GameManager.Singleton.AddPlayer(this);
+
+        int id = GetComponent<NetworkObject>().GetInstanceID();
+        GameManager.Singleton.AddPlayer(id, this);
     }
 
     private void Start()
@@ -81,8 +83,8 @@ public class Player : NetworkBehaviour
         SetCharacter(character.Value);
         SetName(playerName.text);
 
-        int id = GetComponent<NetworkObject>().GetInstanceID();
-        GameManager.Singleton.AddPlayer(id, this);
+        //int id = GetComponent<NetworkObject>().GetInstanceID();
+        //GameManager.Singleton.AddPlayer(id, this);
     }
 
     void ConfigurePlayer()

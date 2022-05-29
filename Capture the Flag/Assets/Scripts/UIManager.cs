@@ -218,17 +218,17 @@ public class UIManager : MonoBehaviour
     public void WaitingForPlayers(int playerReady, int playeTotal) 
     {
         WaitingForPlayersServerRpc(playerReady, playeTotal);
+    } 
+
+    public void UpdateTimer(int timer) 
+    {
+        UpdateTimerServerRpc(timer);
     }
 
     [ServerRpc]
     private void WaitingForPlayersServerRpc(int playerReady, int playeTotal)
     {
         waitingText.text = "Hay " + playerReady + "/" + playeTotal + " jugadores listos";
-    }
-
-    public void UpdateTimer(int timer) 
-    {
-        UpdateTimerServerRpc(timer);
     }
 
     [ServerRpc]
@@ -264,6 +264,7 @@ public class UIManager : MonoBehaviour
 
     private void StartServer()
     {
+        GameManager.Singleton.EnableApprovalCallback();
         NetworkManager.Singleton.StartServer();
         ActivateInGameHUD();
     }
