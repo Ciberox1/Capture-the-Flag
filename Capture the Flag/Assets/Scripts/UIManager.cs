@@ -83,6 +83,11 @@ public class UIManager : MonoBehaviour
         ActivateMainMenu();
     }
 
+    private void OnGUI()
+    {
+        GameManager.Singleton.SetPlayerNames();
+    }
+
     #endregion
 
     #region UI Related Methods
@@ -194,7 +199,7 @@ public class UIManager : MonoBehaviour
 
         if (inputFieldName.text == "")
         {
-            inputFieldName.text = "Player_Default";
+            inputFieldName.text = "Player_" + Random.Range(1, 1000).ToString("000");
         }
 
         if (hosting)

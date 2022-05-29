@@ -11,7 +11,9 @@ public class GameManager : NetworkBehaviour
     private const int MIN_PLAYERS = 2;
     private int timer = 5;
 
-    public HashSet<Player> players = new HashSet<Player>();
+
+    private Dictionary<int, Player> players = new Dictionary<int, Player>();
+    //public HashSet<Player> players = new HashSet<Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
@@ -20,6 +22,7 @@ public class GameManager : NetworkBehaviour
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
     }
+
 
     public static GameManager Singleton
     {
@@ -39,17 +42,18 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    public void AddPlayer(Player player) 
+    public void AddPlayer(int playerId, Player player)
     {
-        players.Add(player);
+        players.Add(playerId, player);
+        
         if (IsServer) 
         {
             //Comrpobar que se inicia la partida
-            if (players.Count >= MIN_PLAYERS) 
+            if (players.Keys.Count >= MIN_PLAYERS) 
             {
                 //Empezar la partida
                 state.Value = State.Waiting;
-                if (players.Count == playersReady.Value)
+                if (players.Keys.Count == playersReady.Value)
                 {
                     StartCoroutine(EmpezarPartida());
                 }
@@ -61,6 +65,19 @@ public class GameManager : NetworkBehaviour
             }
         }
     }
+
+    public Dictionary<int, Player> GetPlayers()
+    {
+        return playerNames;
+    }
+
+    public void SetPlayerNames()
+    {
+        Dictionary<int, Player> currentPlayers = GetPlayers();
+        foreach (int playerId in currentPlayers.Keys)
+        {
+            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString(); 
+        }
 
     private IEnumerator EmpezarPartida() 
     {
@@ -93,7 +110,7 @@ public class GameManager : NetworkBehaviour
     //Metodo para comprobar si pueden entrar, no deja si ya hay un maximo de jugadores
     private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkManager.ConnectionApprovedDelegate callback) 
     {
-        bool approve = players.Count < MAX_PLAYERS;
+        bool approve = players.Keys.Count < MAX_PLAYERS;
 
         GameObject spawnPositions = GameObject.FindWithTag("Respawn");
         int pos = Random.Range(0, spawnPositions.transform.childCount);
