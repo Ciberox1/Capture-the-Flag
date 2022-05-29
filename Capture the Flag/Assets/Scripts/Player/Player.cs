@@ -4,6 +4,7 @@ using UnityEngine;
 using Cinemachine;
 using Unity.Netcode;
 using UnityEngine.UI;
+using Unity.Collections;
 
 public class Player : NetworkBehaviour
 {
@@ -14,11 +15,12 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> playerHealth;
 
     public NetworkVariable<int> character;
+    public NetworkVariable<FixedString64Bytes> givenName;
 
     AnimationHandler animationHandler;
     Animator animator;
 
-    [SerializeField] Text playerName;
+    [SerializeField] public Text playerName;
 
     #endregion
 
@@ -30,6 +32,7 @@ public class Player : NetworkBehaviour
 
         State = new NetworkVariable<PlayerState>();
         playerHealth = new NetworkVariable<int>(6);
+        givenName = new NetworkVariable<FixedString64Bytes>("");
         //character = new NetworkVariable<int>(UIManager.Singleton.characterIndex);
 
         animationHandler = GetComponent<AnimationHandler>();
@@ -49,6 +52,7 @@ public class Player : NetworkBehaviour
         State.OnValueChanged += OnPlayerStateValueChanged;
         playerHealth.OnValueChanged += OnPlayerHealthValueChanged;
         character.OnValueChanged += OnCharacterValueChanged;
+        givenName.OnValueChanged += OnPlayerNameChanged;
     }
 
     private void OnDisable()
@@ -57,6 +61,7 @@ public class Player : NetworkBehaviour
         State.OnValueChanged -= OnPlayerStateValueChanged;
         playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
         character.OnValueChanged -= OnCharacterValueChanged;
+        givenName.OnValueChanged -= OnPlayerNameChanged;
 
     }
 
@@ -74,7 +79,10 @@ public class Player : NetworkBehaviour
         }
         //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
         SetCharacter(character.Value);
-        //SetName(playerName.text);
+        SetName(playerName.text);
+
+        int id = GetComponent<NetworkObject>().GetInstanceID();
+        GameManager.Singleton.AddPlayer(id, this);
     }
 
     void ConfigurePlayer()
@@ -162,8 +170,12 @@ public class Player : NetworkBehaviour
     [ServerRpc]
     public void SetPlayerNameServerRpc(string name)
     {
+        this.givenName.Value = new FixedString64Bytes(name);
         playerName.text = name;
-        SetPlayerNameClientRpc(name);
+
+        //GameManager.Singleton.SetPlayerNames();
+        //playerName.text = givenName.Value.ToString();
+        //SetPlayerNameClientRpc(givenName.Value.ToString());
     }
 
     #endregion
@@ -172,7 +184,7 @@ public class Player : NetworkBehaviour
     [ClientRpc]
     public void SetPlayerNameClientRpc(string name)
     {
-        playerName.text = name;
+        GameManager.Singleton.SetPlayerNames();
     }
 
     #endregion
@@ -207,6 +219,11 @@ public class Player : NetworkBehaviour
 
         //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
         SetCharacter(newValue);
+    }
+
+    private void OnPlayerNameChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        SetName(newValue.ToString());
     }
 
     private void SetCharacter(int character) 
