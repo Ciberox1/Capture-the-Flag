@@ -37,7 +37,7 @@ public class Player : NetworkBehaviour
 
         animationHandler = GetComponent<AnimationHandler>();
         animator = GetComponent<Animator>();
-
+        GameManager.Singleton.AddPlayer(this);
     }
 
     private void Start()

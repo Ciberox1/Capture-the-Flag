@@ -3,14 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     private static GameManager _instance;
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
+    private int timer = 5;
 
-    private Dictionary<int, Player> playerNames = new Dictionary<int, Player>();
+
+    private Dictionary<int, Player> players = new Dictionary<int, Player>();
+    //public HashSet<Player> players = new HashSet<Player>();
+
+    public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
+    public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
+
+    public void EnableApprovalCallback()
+    {
+        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
+    }
+
 
     public static GameManager Singleton
     {
@@ -32,7 +44,26 @@ public class GameManager : MonoBehaviour
 
     public void AddPlayer(int playerId, Player player)
     {
-        playerNames.Add(playerId, player);
+        players.Add(playerId, player);
+        
+        if (IsServer) 
+        {
+            //Comrpobar que se inicia la partida
+            if (players.Keys.Count >= MIN_PLAYERS) 
+            {
+                //Empezar la partida
+                state.Value = State.Waiting;
+                if (players.Keys.Count == playersReady.Value)
+                {
+                    StartCoroutine(EmpezarPartida());
+                }
+                else 
+                {
+                    //Hacer que impriman el esperar a jugadores
+                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Count);
+                }
+            }
+        }
     }
 
     public Dictionary<int, Player> GetPlayers()
@@ -47,5 +78,52 @@ public class GameManager : MonoBehaviour
         {
             currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString(); 
         }
+
+    private IEnumerator EmpezarPartida() 
+    {
+        //Hacer cuenta atras y empezar la partida
+       // for (int i = 0; i < timer; i++) 
+       // {
+       //     yield return new WaitForSeconds(1);
+       //     //Mostrar por pantalla la espera en segundos
+       //     UIManager.Singleton.UpdateTimer(timer);
+       // }
+       //
+       // state.Value = State.Game;
+
+        while(timer > 0) 
+        {
+            yield return new WaitForSeconds(1);
+            if (state.Value != State.Waiting) 
+            {
+                yield break;
+            }
+
+            timer--;
+            print(timer);
+        }
+
+        //Empezar partida
+        state.Value = State.Game;
+    }
+
+    //Metodo para comprobar si pueden entrar, no deja si ya hay un maximo de jugadores
+    private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkManager.ConnectionApprovedDelegate callback) 
+    {
+        bool approve = players.Keys.Count < MAX_PLAYERS;
+
+        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
+        int pos = Random.Range(0, spawnPositions.transform.childCount);
+        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
+
+        callback(true, null, approve, spawnPosition, null);
+    }
+
+    public enum State 
+    {
+        Lobby, 
+        Waiting,
+        Game,
+        Finish
     }
 }
