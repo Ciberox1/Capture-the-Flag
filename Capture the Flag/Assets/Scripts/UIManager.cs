@@ -88,6 +88,7 @@ public class UIManager : MonoBehaviour
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
+        UpdateTimer(GameManager.Singleton.timer); 
     }
 
     #endregion
@@ -112,6 +113,7 @@ public class UIManager : MonoBehaviour
         lobby.SetActive(false);
         mainMenu.SetActive(false);
         waiting.SetActive(true);
+        inGameHUD.SetActive(true);
     }
 
     private void ActivateInGameHUD()
@@ -199,8 +201,7 @@ public class UIManager : MonoBehaviour
     // Cuando el jugador pulse el botón de preparado se unirá a la partida
     private void PlayerReady()
     {
-        lobby.SetActive(false);
-        inGameHUD.SetActive(true);
+        ActivateWaiting();
 
         // Si el jugador no ha dado un nombre, se le asignará uno.
         if (inputFieldName.text == "")
@@ -212,12 +213,12 @@ public class UIManager : MonoBehaviour
         {
             GameManager.Singleton.EnableApprovalCallback();
             NetworkManager.Singleton.StartHost();
-            ActivateInGameHUD();
+            //ActivateInGameHUD();
         }
         else 
         {
             NetworkManager.Singleton.StartClient();
-            ActivateInGameHUD();
+            //ActivateInGameHUD();
         }
     }
 
@@ -229,6 +230,16 @@ public class UIManager : MonoBehaviour
     public void UpdateTimer(int timer) 
     {
         UpdateTimerServerRpc(timer);
+       // if (GameManager.Singleton.state.Value == GameManager.State.Waiting) 
+       // {
+       //     waitingText.text = "La partida empieza en " + timer;
+       // }
+       //
+       // if (GameManager.Singleton.state.Value == GameManager.State.Game)
+       // {
+       //     //ActivateInGameHUD();
+       //     UpdateTimerServerRpc(timer);
+       // }
     }
 
     [ServerRpc]
@@ -240,7 +251,34 @@ public class UIManager : MonoBehaviour
     [ServerRpc]
     private void UpdateTimerServerRpc(int timer)
     {
-        waitingText.text = "La partida empieza en " + timer;
+        UpdateTimerClientRpc(timer);
+
+       //waitingText.text = "La partida empieza en " + timer;
+       //if (timer == 0)
+       //{
+       //    ActivateInGameHUD();
+       //}
+    }
+
+    [ClientRpc]
+    private void UpdateTimerClientRpc(int timer) 
+    {
+        //waitingText.text = "La partida empieza en " + timer;
+        //if (timer == 0)
+        //{
+        //    ActivateInGameHUD();
+        //}
+        if (GameManager.Singleton.state.Value == GameManager.State.Waiting)
+        {
+            //waitingText.text = "La partida empieza en " + timer;
+
+            waitingText.text = "La partida comenzar en breve";
+        }
+
+        if (GameManager.Singleton.state.Value == GameManager.State.Game)
+        {
+            ActivateInGameHUD();
+        }
     }
 
     #endregion
