@@ -9,9 +9,13 @@ public class GameManager : NetworkBehaviour
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
-    public int timer = 5;
+    private const int WIN_CON = 3;
+    private const int COUNTDOWN_TIME = 10;
 
-    private Dictionary<int, Player> players = new Dictionary<int, Player>();
+    public int timer = COUNTDOWN_TIME;
+
+    public Dictionary<int, Player> players = new Dictionary<int, Player>();
+    //public Dictionary<ulong, Player> players = new Dictionary<ulong, Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
@@ -34,7 +38,6 @@ public class GameManager : NetworkBehaviour
             return _instance;
         }
     }
-
     public void EnableApprovalCallback()
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
@@ -53,12 +56,17 @@ public class GameManager : NetworkBehaviour
                 //Empezar la partida
                 state.Value = State.Waiting;
                 
-                StartCoroutine(EmpezarPartida());
+                StartCoroutine(StartGame());
 
                 //Hacer que impriman el esperar a jugadores
                 UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
             }
         }
+    }
+
+    public void DeletePlayer(int playerId)
+    {
+        players.Remove(playerId);
     }
 
     public Dictionary<int, Player> GetPlayers()
@@ -75,18 +83,9 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private IEnumerator EmpezarPartida() 
+    private IEnumerator StartGame() 
     {
         //Hacer cuenta atras y empezar la partida
-       // for (int i = 0; i < timer; i++) 
-       // {
-       //     yield return new WaitForSeconds(1);
-       //     //Mostrar por pantalla la espera en segundos
-       //     UIManager.Singleton.UpdateTimer(timer);
-       // }
-       //
-       // state.Value = State.Game;
-
         while(timer > 0) 
         {
             //Llamar a UImanager y actualizar el texto (timer)
@@ -107,6 +106,7 @@ public class GameManager : NetworkBehaviour
         //Respawn de los jugadores
         foreach (var player in players.Values) 
         {
+            player.kills.Value = 0;
             DieAndRespawn(player);
         }
     }
@@ -136,6 +136,52 @@ public class GameManager : NetworkBehaviour
         player.playerHealth.Value = 6;
         // se envia al jugador a una nueva posicion de respawn y se le cura
         player.transform.position = SetPlayerSpawnPosition();
+    }
+    
+    public void AddKill(Player player)
+    {
+        player.kills.Value++;
+        print(player.playerName.text + ": " + player.kills.Value);
+
+        CheckWinCondition(player);
+    }
+
+    private void CheckWinCondition(Player player)
+    {
+        if (state.Value == State.Game && player.kills.Value == WIN_CON)
+        {
+            StartCoroutine(FinishGame(player.playerName.text));
+        }
+    }
+
+    private IEnumerator FinishGame(string winnerName)
+    {
+        //Terminar partida
+        state.Value = State.Finish;
+        print("Se acabo esto, el ganador es " + winnerName);
+        yield return new WaitForSeconds(3);
+
+        //Respawn de los jugadores
+        foreach (var player in players.Values)
+        {
+            player.kills = new NetworkVariable<int>(0);
+            DieAndRespawn(player);
+        }
+    }
+
+    public void Cosa()
+    {
+        if (!IsServer) { return; }
+        if (players.Keys.Count < MIN_PLAYERS)
+        {
+            foreach (Player player in players.Values)
+            {
+                player.playerHealth.Value = 6;
+                player.kills.Value = 0;
+            }
+            timer = COUNTDOWN_TIME;
+            state.Value = State.Lobby;
+        }
     }
 
     public enum State 
