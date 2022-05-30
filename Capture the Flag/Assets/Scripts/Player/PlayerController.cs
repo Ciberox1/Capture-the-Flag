@@ -159,9 +159,6 @@ public class PlayerController : NetworkBehaviour
     [ServerRpc]
     void PlayerShootServerRpc(Vector3 dir)
     {
-        
-        
-
         Vector2 spawnPos = player.transform.position + dir * 0.2f;
 
         Bullet bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
@@ -202,8 +199,6 @@ public class PlayerController : NetworkBehaviour
         // pide al servidor que ejecute el disparo
         PlayerShootServerRpc(dir);
     }
-
-
 
     // comprobamos la aceleración en el eje y para evitar falsos positivos
     bool IsGrounded => collider.IsTouching(filter) && rb.velocity.y == 0;

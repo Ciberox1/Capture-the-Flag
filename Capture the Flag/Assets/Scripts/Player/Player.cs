@@ -13,14 +13,13 @@ public class Player : NetworkBehaviour
     // https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable
     public NetworkVariable<PlayerState> State;
     public NetworkVariable<int> playerHealth;
-
     public NetworkVariable<int> character;
-    public NetworkVariable<FixedString64Bytes> givenName;
+    public NetworkVariable<FixedString64Bytes> givenName; // nombre del jugador dado a UIManager
 
     AnimationHandler animationHandler;
     Animator animator;
 
-    [SerializeField] public Text playerName;
+    [SerializeField] public Text playerName; // objeto que muestra el nombre del jugador en la partida
 
     #endregion
 
@@ -33,18 +32,13 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         playerHealth = new NetworkVariable<int>(6);
         givenName = new NetworkVariable<FixedString64Bytes>("");
-        //character = new NetworkVariable<int>(UIManager.Singleton.characterIndex);
 
         animationHandler = GetComponent<AnimationHandler>();
         animator = GetComponent<Animator>();
-        GameManager.Singleton.AddPlayer(this);
-    }
 
-    private void Start()
-    {
-        SetSpawnPosition();
+        int id = GetComponent<NetworkObject>().GetInstanceID();
+        GameManager.Singleton.AddPlayer(id, this);
     }
-
 
     private void OnEnable()
     {
@@ -52,7 +46,6 @@ public class Player : NetworkBehaviour
         State.OnValueChanged += OnPlayerStateValueChanged;
         playerHealth.OnValueChanged += OnPlayerHealthValueChanged;
         character.OnValueChanged += OnCharacterValueChanged;
-        givenName.OnValueChanged += OnPlayerNameChanged;
     }
 
     private void OnDisable()
@@ -61,8 +54,6 @@ public class Player : NetworkBehaviour
         State.OnValueChanged -= OnPlayerStateValueChanged;
         playerHealth.OnValueChanged -= OnPlayerHealthValueChanged;
         character.OnValueChanged -= OnCharacterValueChanged;
-        givenName.OnValueChanged -= OnPlayerNameChanged;
-
     }
 
     #endregion
@@ -75,24 +66,18 @@ public class Player : NetworkBehaviour
         {
             ConfigurePlayer();
             ConfigureCamera();
-            ConfigureControls();
+            ConfigureControls();  
         }
-        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
+        // Se pone fuera de la comprobación a fin de que la asignación ocurra en las copias de otros clientes
         SetCharacter(character.Value);
-        SetName(playerName.text);
-
-        int id = GetComponent<NetworkObject>().GetInstanceID();
-        GameManager.Singleton.AddPlayer(id, this);
     }
 
     void ConfigurePlayer()
     {
-        UpdatePlayerStateServerRpc(PlayerState.Grounded);
-        // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
-        VisualizeCrossHead();
-        SetCharacterServerRpc(UIManager.Singleton.characterIndex);
-        SetPlayerNameServerRpc(UIManager.Singleton.inputFieldName.text);
-        //SetPlayerNameClientRpc(UIManager.Singleton.inputFieldName.text);
+        UpdatePlayerStateServerRpc(PlayerState.Grounded);       
+        VisualizeCrossHead(); // activa el spriteRenderer de la diana del jugador local (está desactivada por defecto)
+        SetCharacterServerRpc(UIManager.Singleton.characterIndex); // Coge la id del personaje elegido desde UIManager
+        SetPlayerNameServerRpc(UIManager.Singleton.inputFieldName.text); // Coge el nombre del jugador desde UIManager
     }
 
     void ConfigureCamera()
@@ -107,13 +92,6 @@ public class Player : NetworkBehaviour
     void ConfigureControls()
     {
         GetComponent<InputHandler>().enabled = true;
-    }
-
-    void SetSpawnPosition()
-    {
-        if (IsLocalPlayer)
-            // pide al servidor que busque uno de los puntos de aparición que hay por el mapa y coloque al jugador en él
-            SetPlayerSpawnPositionServerRpc();
     }
 
     void VisualizeCrossHead()
@@ -144,6 +122,7 @@ public class Player : NetworkBehaviour
         State.Value = state;
     }
 
+    // El servidor busca un punto de spawn y coloca ahí al jugador
     [ServerRpc]
     public void SetPlayerSpawnPositionServerRpc()
     {
@@ -153,6 +132,7 @@ public class Player : NetworkBehaviour
         transform.position = spawnPosition;
     }
 
+    // Poner la vida al máximo cuando el jugador reaparece
     [ServerRpc]
     public void RestorePlayerServerRpc()
     {
@@ -163,8 +143,6 @@ public class Player : NetworkBehaviour
     public void SetCharacterServerRpc(int chara)
     {
         character.Value = chara;
-        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
-        //SetCharacterClientRpc(chara);
     }
 
     [ServerRpc]
@@ -172,19 +150,6 @@ public class Player : NetworkBehaviour
     {
         this.givenName.Value = new FixedString64Bytes(name);
         playerName.text = name;
-
-        //GameManager.Singleton.SetPlayerNames();
-        //playerName.text = givenName.Value.ToString();
-        //SetPlayerNameClientRpc(givenName.Value.ToString());
-    }
-
-    #endregion
-
-    #region ClientRPC
-    [ClientRpc]
-    public void SetPlayerNameClientRpc(string name)
-    {
-        GameManager.Singleton.SetPlayerNames();
     }
 
     #endregion
@@ -199,6 +164,7 @@ public class Player : NetworkBehaviour
         State.Value = current;
     }
 
+    // Actualizar la vida y morir si es necesario
     private void OnPlayerHealthValueChanged(int previousValue, int newValue)
     {
         if (IsLocalPlayer)
@@ -215,31 +181,17 @@ public class Player : NetworkBehaviour
 
     private void OnCharacterValueChanged(int previousValue, int newValue)
     {
-        //character.Value = newValue;
-
-        //GetComponent<Animator>().runtimeAnimatorController = GetComponent<AnimationHandler>().characterAnimation[character.Value];
         SetCharacter(newValue);
     }
 
-    private void OnPlayerNameChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
-    {
-        SetName(newValue.ToString());
-    }
-
+    // asigna la animación correspondiente
     private void SetCharacter(int character) 
     {
         animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
     }
 
-    private void SetName(string name)
-    {
-        playerName.text = name;
-    }
-
     #endregion
 }
-
-
 
 public enum PlayerState
 {

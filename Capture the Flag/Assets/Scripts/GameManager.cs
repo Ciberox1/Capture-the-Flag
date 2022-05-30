@@ -5,25 +5,18 @@ using Unity.Netcode;
 
 public class GameManager : NetworkBehaviour
 {
-    private static GameManager _instance;
+    private static GameManager _instance; // Variable para el singleton
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
     private int timer = 5;
 
-
     private Dictionary<int, Player> players = new Dictionary<int, Player>();
-    //public HashSet<Player> players = new HashSet<Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
 
-    public void EnableApprovalCallback()
-    {
-        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-    }
-
-
+    // Usamos esto para acceder a elementos del GameManager en otras clases que los necesiten
     public static GameManager Singleton
     {
         get
@@ -42,8 +35,14 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    public void EnableApprovalCallback()
+    {
+        NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
+    } 
+
     public void AddPlayer(int playerId, Player player)
     {
+        //Añade jugador al diccionario de jugadores
         players.Add(playerId, player);
         
         if (IsServer) 
@@ -60,7 +59,7 @@ public class GameManager : NetworkBehaviour
                 else 
                 {
                     //Hacer que impriman el esperar a jugadores
-                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Count);
+                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
                 }
             }
         }
@@ -68,7 +67,7 @@ public class GameManager : NetworkBehaviour
 
     public Dictionary<int, Player> GetPlayers()
     {
-        return playerNames;
+        return players;
     }
 
     public void SetPlayerNames()
@@ -76,8 +75,9 @@ public class GameManager : NetworkBehaviour
         Dictionary<int, Player> currentPlayers = GetPlayers();
         foreach (int playerId in currentPlayers.Keys)
         {
-            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString(); 
+            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString();
         }
+    }
 
     private IEnumerator EmpezarPartida() 
     {
