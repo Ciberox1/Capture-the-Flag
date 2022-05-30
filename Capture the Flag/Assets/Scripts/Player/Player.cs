@@ -58,6 +58,11 @@ public class Player : NetworkBehaviour
         character.OnValueChanged -= OnCharacterValueChanged;
     }
 
+    private void OnDestroy()
+    {
+        GameManager.Singleton.DeletePlayer(GetComponent<NetworkObject>().GetInstanceID());
+        GameManager.Singleton.Cosa();
+    }
     #endregion
 
     #region Config Methods
@@ -170,7 +175,8 @@ public class Player : NetworkBehaviour
     // asigna la animación correspondiente
     private void SetCharacter(int character) 
     {
-        animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
+        if (animator != null)
+            animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
     }
 
     #endregion
