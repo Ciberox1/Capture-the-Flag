@@ -10,7 +10,7 @@ public class UIManager : MonoBehaviour
 
     #region Variables
 
-    private static UIManager _instance;
+    private static UIManager _instance; // Variable para el singleton
 
     [SerializeField] NetworkManager networkManager;
     UnityTransport transport;
@@ -34,9 +34,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button buttonLeft;
     [SerializeField] private Button buttonReady;
     [SerializeField] private Image characterImage;
-    public int characterIndex = 0;
     [SerializeField] public InputField inputFieldName;
-
+    public int characterIndex = 0;
+    
     [Header("Waiting")]
     [SerializeField] private GameObject waiting;
     [SerializeField] private Text waitingText;
@@ -47,6 +47,7 @@ public class UIManager : MonoBehaviour
     
     #endregion
 
+    // Usamos esto para acceder a elementos del UIManager en otras clases que los necesiten
     public static UIManager Singleton
     {
         get
@@ -83,6 +84,7 @@ public class UIManager : MonoBehaviour
         ActivateMainMenu();
     }
 
+    // A fin de actualizar los nombres de todos los jugadores para todos los clientes se llama a SetPlayerNames en OnGUI
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
@@ -97,7 +99,6 @@ public class UIManager : MonoBehaviour
         mainMenu.SetActive(true);
         inGameHUD.SetActive(false);
     }
-
 
     private void ActivateLobby()
     {
@@ -123,6 +124,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdateLifeUI(int hitpoints)
     {
+        // Hemos invertido el orden de los casos porque pasamos directamente la vida restante del jugador
         switch (hitpoints)
         {
             case 0:
@@ -163,6 +165,8 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // Método llamado por los botones de cambiar personaje (< y >). En función de cual se pulse mueve el
+    // índice en una dirección u otra y actualiza el personaje que se muestra en el menú
     private void ChangeCharacter(int v)
     {
         if (v == 0)
@@ -192,11 +196,13 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    // Cuando el jugador pulse el botón de preparado se unirá a la partida
     private void PlayerReady()
     {
         lobby.SetActive(false);
         inGameHUD.SetActive(true);
 
+        // Si el jugador no ha dado un nombre, se le asignará uno.
         if (inputFieldName.text == "")
         {
             inputFieldName.text = "Player_" + Random.Range(1, 1000).ToString("000");
@@ -244,7 +250,6 @@ public class UIManager : MonoBehaviour
     private void StartHost()
     {
         hosting = true;
-        //NetworkManager.Singleton.StartHost();
         ActivateLobby();
     }
 
@@ -257,7 +262,6 @@ public class UIManager : MonoBehaviour
         {
             transport.SetConnectionData(ip, port);
         }
-        //NetworkManager.Singleton.StartClient();
 
         ActivateLobby();
     }

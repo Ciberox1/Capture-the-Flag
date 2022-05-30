@@ -87,7 +87,7 @@ public class GrapplingHook : NetworkBehaviour
     {
         if (player.State.Value == PlayerState.Hooked)
         {
-            ClimbRope(input.y); // multiplicamos por la velocidad de escalada para no ir demasiado lento
+            ClimbRope(input.y); 
             UpdateRopeClientRpc();
 
         }

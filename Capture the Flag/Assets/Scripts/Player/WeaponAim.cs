@@ -54,12 +54,7 @@ public class WeaponAim : NetworkBehaviour
 
     void UpdateWeaponOrientation()
     {
-
-        //Vector3 a = new Vector3(0, 0, crossHair.position.z - weapon.position.z);
-        //weapon.right = a;
-        weapon.right = crossHair.position - weapon.position;
-
-        
+        weapon.right = crossHair.position - weapon.position;        
 
         if (crossHair.localPosition.x > 0)
         {

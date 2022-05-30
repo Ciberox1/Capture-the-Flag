@@ -5,19 +5,18 @@ using Unity.Netcode;
 
 public class GameManager : NetworkBehaviour
 {
-    private static GameManager _instance;
+    private static GameManager _instance; // Variable para el singleton
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
     private int timer = 5;
 
-
     private Dictionary<int, Player> players = new Dictionary<int, Player>();
-    //public HashSet<Player> players = new HashSet<Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
 
+    // Usamos esto para acceder a elementos del GameManager en otras clases que los necesiten
     public static GameManager Singleton
     {
         get
@@ -43,6 +42,7 @@ public class GameManager : NetworkBehaviour
 
     public void AddPlayer(int playerId, Player player)
     {
+        //Añade jugador al diccionario de jugadores
         players.Add(playerId, player);
         
         if (IsServer) 
