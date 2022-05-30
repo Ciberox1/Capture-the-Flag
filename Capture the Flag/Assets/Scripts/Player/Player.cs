@@ -100,15 +100,6 @@ public class Player : NetworkBehaviour
         this.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = true;
     }
 
-    void DieAndRespawn()
-    {
-        if (IsLocalPlayer) {
-            // se envia al jugador a una nueva posicion de respawn y se le cura
-            SetPlayerSpawnPositionServerRpc();
-            RestorePlayerServerRpc();
-        }
-    }
-
     #endregion
 
     #region RPC
@@ -122,21 +113,13 @@ public class Player : NetworkBehaviour
         State.Value = state;
     }
 
-    // El servidor busca un punto de spawn y coloca ahí al jugador
-    [ServerRpc]
-    public void SetPlayerSpawnPositionServerRpc()
-    {
-        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
-        int pos = Random.Range(0, spawnPositions.transform.childCount);
-        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
-        transform.position = spawnPosition;
-    }
+
 
     // Poner la vida al máximo cuando el jugador reaparece
     [ServerRpc]
-    public void RestorePlayerServerRpc()
+    public void DieAndRespawnServerRpc()
     {
-        playerHealth.Value = 6;
+        GameManager.Singleton.DieAndRespawn(this);
     }
 
     [ServerRpc]
@@ -174,7 +157,7 @@ public class Player : NetworkBehaviour
 
             if (newValue == 0)
             {
-                DieAndRespawn();
+                DieAndRespawnServerRpc();
             }
         }
     }

@@ -112,11 +112,26 @@ public class GameManager : NetworkBehaviour
     {
         bool approve = players.Keys.Count < MAX_PLAYERS;
 
+        Vector3 spawnPosition = SetPlayerSpawnPosition();
+
+        callback(true, null, approve, spawnPosition, null);
+    }
+
+    // El servidor busca un punto de spawn y coloca ahí al jugador
+    public Vector3 SetPlayerSpawnPosition()
+    {
         GameObject spawnPositions = GameObject.FindWithTag("Respawn");
         int pos = Random.Range(0, spawnPositions.transform.childCount);
         Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
+        //transform.position = spawnPosition;
+        return spawnPosition;
+    }
 
-        callback(true, null, approve, spawnPosition, null);
+    public void DieAndRespawn(Player player)
+    {
+        player.playerHealth.Value = 6;
+        // se envia al jugador a una nueva posicion de respawn y se le cura
+        player.transform.position = SetPlayerSpawnPosition();
     }
 
     public enum State 
