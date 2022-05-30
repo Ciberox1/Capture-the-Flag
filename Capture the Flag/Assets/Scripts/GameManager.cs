@@ -9,7 +9,7 @@ public class GameManager : NetworkBehaviour
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
-    private int timer = 5;
+    public int timer = 5;
 
     private Dictionary<int, Player> players = new Dictionary<int, Player>();
 
@@ -52,15 +52,11 @@ public class GameManager : NetworkBehaviour
             {
                 //Empezar la partida
                 state.Value = State.Waiting;
-                if (players.Keys.Count == playersReady.Value)
-                {
-                    StartCoroutine(EmpezarPartida());
-                }
-                else 
-                {
-                    //Hacer que impriman el esperar a jugadores
-                    UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
-                }
+                
+                StartCoroutine(EmpezarPartida());
+
+                //Hacer que impriman el esperar a jugadores
+                UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
             }
         }
     }
@@ -72,10 +68,10 @@ public class GameManager : NetworkBehaviour
 
     public void SetPlayerNames()
     {
-        Dictionary<int, Player> currentPlayers = GetPlayers();
-        foreach (int playerId in currentPlayers.Keys)
+        //Dictionary<int, Player> currentPlayers = GetPlayers();
+        foreach (int playerId in players.Keys)
         {
-            currentPlayers[playerId].playerName.text = currentPlayers[playerId].givenName.Value.ToString();
+            players[playerId].playerName.text = players[playerId].givenName.Value.ToString();
         }
     }
 
@@ -93,6 +89,8 @@ public class GameManager : NetworkBehaviour
 
         while(timer > 0) 
         {
+            //Llamar a UImanager y actualizar el texto (timer)
+            UIManager.Singleton.UpdateTimer(timer);
             yield return new WaitForSeconds(1);
             if (state.Value != State.Waiting) 
             {
@@ -105,6 +103,12 @@ public class GameManager : NetworkBehaviour
 
         //Empezar partida
         state.Value = State.Game;
+
+        //Respawn de los jugadores
+        foreach (var player in players.Values) 
+        {
+            DieAndRespawn(player);
+        }
     }
 
     //Metodo para comprobar si pueden entrar, no deja si ya hay un maximo de jugadores
