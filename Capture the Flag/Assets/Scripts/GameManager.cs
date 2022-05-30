@@ -9,9 +9,12 @@ public class GameManager : NetworkBehaviour
 
     private const int MAX_PLAYERS = 4;
     private const int MIN_PLAYERS = 2;
+    private const int WIN_CON = 3;
+
     public int timer = 5;
 
-    private Dictionary<int, Player> players = new Dictionary<int, Player>();
+    public Dictionary<int, Player> players = new Dictionary<int, Player>();
+    //public Dictionary<ulong, Player> players = new Dictionary<ulong, Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
@@ -53,7 +56,7 @@ public class GameManager : NetworkBehaviour
                 //Empezar la partida
                 state.Value = State.Waiting;
                 
-                StartCoroutine(EmpezarPartida());
+                StartCoroutine(StartGame());
 
                 //Hacer que impriman el esperar a jugadores
                 UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
@@ -75,7 +78,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    private IEnumerator EmpezarPartida() 
+    private IEnumerator StartGame() 
     {
         //Hacer cuenta atras y empezar la partida
        // for (int i = 0; i < timer; i++) 
@@ -136,6 +139,37 @@ public class GameManager : NetworkBehaviour
         player.playerHealth.Value = 6;
         // se envia al jugador a una nueva posicion de respawn y se le cura
         player.transform.position = SetPlayerSpawnPosition();
+    }
+    
+    public void AddKill(Player player)
+    {
+        player.kills.Value++;
+        print(player.playerName.text + ": " + player.kills.Value);
+
+        CheckWinCondition(player);
+    }
+
+    private void CheckWinCondition(Player player)
+    {
+        if (state.Value == State.Game && player.kills.Value == WIN_CON)
+        {
+            StartCoroutine(FinishGame(player.playerName.text));
+        }
+    }
+
+    private IEnumerator FinishGame(string winnerName)
+    {
+        //Terminar partida
+        state.Value = State.Finish;
+        print("Se acabo esto, el ganador es " + winnerName);
+        yield return new WaitForSeconds(3);
+
+        //Respawn de los jugadores
+        foreach (var player in players.Values)
+        {
+            player.kills = new NetworkVariable<int>(0);
+            DieAndRespawn(player);
+        }
     }
 
     public enum State 
