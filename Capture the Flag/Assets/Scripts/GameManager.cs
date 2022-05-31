@@ -59,7 +59,6 @@ public class GameManager : NetworkBehaviour
                 StartCoroutine(StartGame());
 
                 //Hacer que impriman el esperar a jugadores
-                UIManager.Singleton.WaitingForPlayers(playersReady.Value, players.Keys.Count);
             }
         }
     }
@@ -89,7 +88,7 @@ public class GameManager : NetworkBehaviour
         while(timer > 0) 
         {
             //Llamar a UImanager y actualizar el texto (timer)
-            UIManager.Singleton.UpdateTimer(timer);
+            UIManager.Singleton.UpdateTimerClientRpc();
             yield return new WaitForSeconds(1);
             if (state.Value != State.Waiting) 
             {
@@ -103,6 +102,7 @@ public class GameManager : NetworkBehaviour
         //Empezar partida
         state.Value = State.Game;
 
+        UIManager.Singleton.ActivateGameHUDClientRpc();
         //Respawn de los jugadores
         foreach (var player in players.Values) 
         {
@@ -169,7 +169,7 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-    public void Cosa()
+    public void CancelGame()
     {
         if (!IsServer) { return; }
         if (players.Keys.Count < MIN_PLAYERS)
@@ -180,6 +180,7 @@ public class GameManager : NetworkBehaviour
                 player.kills.Value = 0;
             }
             timer = COUNTDOWN_TIME;
+            UIManager.Singleton.RestartWaitClientRpc();
             state.Value = State.Lobby;
         }
     }

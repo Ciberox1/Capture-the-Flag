@@ -61,7 +61,7 @@ public class Player : NetworkBehaviour
     private void OnDestroy()
     {
         GameManager.Singleton.DeletePlayer(GetComponent<NetworkObject>().GetInstanceID());
-        GameManager.Singleton.Cosa();
+        GameManager.Singleton.CancelGame();
     }
     #endregion
 
