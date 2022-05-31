@@ -131,10 +131,10 @@ public class GameManager : NetworkBehaviour
         return spawnPosition;
     }
 
+    // se envia al jugador a una nueva posicion de respawn y se le cura
     public void DieAndRespawn(Player player)
     {
-        player.playerHealth.Value = 6;
-        // se envia al jugador a una nueva posicion de respawn y se le cura
+        player.playerHealth.Value = 6;      
         player.transform.position = SetPlayerSpawnPosition();
     }
     
