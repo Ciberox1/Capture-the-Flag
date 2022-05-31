@@ -287,28 +287,39 @@ public class UIManager : MonoBehaviour
 
     private void StartHost()
     {
+        if (!SetIPAndPort()) { return; }
         hosting = true;
         ActivateLobby();
     }
 
     private void StartClient()
-    {
-        var ip = inputFieldIP.text;
+    {       
+        if (!SetIPAndPort()) { return; }
         hosting = false;
-
-        if (!string.IsNullOrEmpty(ip))
-        {
-            transport.SetConnectionData(ip, port);
-        }
-
         ActivateLobby();
     }
 
     private void StartServer()
     {
+        SetIPAndPort();
+        if (!SetIPAndPort()) { return; }
         GameManager.Singleton.EnableApprovalCallback();
         NetworkManager.Singleton.StartServer();
         ActivateInGameHUD();
+    }
+
+    private bool SetIPAndPort()
+    {
+        bool success = false;
+        var ip = inputFieldIP.text;
+
+        if (!string.IsNullOrEmpty(ip))
+        {
+            transport.SetConnectionData(ip, port);
+            success = true;
+        }
+
+        return success;
     }
 
     #endregion
