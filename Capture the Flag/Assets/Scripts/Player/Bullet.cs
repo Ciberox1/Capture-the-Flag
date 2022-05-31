@@ -1,15 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
+﻿using UnityEngine;
 using Unity.Netcode;
-using System;
 
 [RequireComponent(typeof(NetworkObject))]
 [RequireComponent(typeof(Rigidbody2D))]
 class Bullet : NetworkBehaviour
-    {
-
+{
     public Player playerOwner;
     // Si el servidor detecta una colisión de la bala, si choca con un jugador le quita vida.
     // En cualquier caso la bala desaparece despues de chocar con algo.

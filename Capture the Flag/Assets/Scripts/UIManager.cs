@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Netcode;
@@ -18,7 +16,7 @@ public class UIManager : NetworkBehaviour
 
     [SerializeField] Sprite[] hearts = new Sprite[3];
 
-    private bool hosting = false;
+    private bool hosting = false; // Solo para el modo host
 
     [Header("Main Menu")]
     [SerializeField] private GameObject mainMenu;
@@ -88,12 +86,10 @@ public class UIManager : NetworkBehaviour
         ActivateMainMenu();
     }
 
-    // A fin de actualizar los nombres de todos los jugadores para todos los clientes se llama a SetPlayerNames en OnGUI
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
         CheckWait();
-        //UpdateTimer(GameManager.Singleton.timer); 
     }
 
     #endregion
@@ -141,6 +137,7 @@ public class UIManager : NetworkBehaviour
 
     private void CheckWait()
     {
+        if (GameManager.Singleton.state.Value == GameManager.State.Finish) { return; }
         if (GameManager.Singleton.state.Value == GameManager.State.Game)
             ActivateInGameHUD();
     }
@@ -222,6 +219,8 @@ public class UIManager : NetworkBehaviour
     // Cuando el jugador pulse el botón de preparado se unirá a la partida
     private void PlayerReady()
     {
+        ActivateWaiting();
+
         // Si el jugador no ha dado un nombre, se le asignará uno.
         if (inputFieldName.text == "")
         {
@@ -229,79 +228,26 @@ public class UIManager : NetworkBehaviour
         }
 
         if (hosting)
-        {
-            ActivateWaiting();
+        {            
             GameManager.Singleton.EnableApprovalCallback();
             NetworkManager.Singleton.StartHost();
         }
         else 
         {
-            if (GameManager.Singleton.players.Count >= 2)
-            {
-                ActivateInGameHUD();
-                NetworkManager.Singleton.StartClient();
-            }
-            else
-            {
-                ActivateWaiting();
-                NetworkManager.Singleton.StartClient();
-            }
-
+            NetworkManager.Singleton.StartClient();
         }
     }
 
-    public void WaitingForPlayers(int playerReady, int playeTotal) 
-    {
-        WaitingForPlayersClientRpc(playerReady, playeTotal);
-    } 
+    #endregion
 
-    public void UpdateTimer(int timer) 
-    {
-        //UpdateTimerClientRpc(timer);
-       // if (GameManager.Singleton.state.Value == GameManager.State.Waiting) 
-       // {
-       //     waitingText.text = "La partida empieza en " + timer;
-       // }
-       //
-       // if (GameManager.Singleton.state.Value == GameManager.State.Game)
-       // {
-       //     //ActivateInGameHUD();
-       //     UpdateTimerServerRpc(timer);
-       // }
-    }
-
-    [ClientRpc]
-    private void WaitingForPlayersClientRpc(int playerReady, int playeTotal)
-    {
-        waitingText.text = "Hay " + playerReady + "/" + playeTotal + " jugadores listos";
-    }
-
-    [ServerRpc]
-    private void UpdateTimerServerRpc(int timer)
-    {
-        
-        //UpdateTimerClientRpc(timer);
-
-       //waitingText.text = "La partida empieza en " + timer;
-       //if (timer == 0)
-       //{
-       //    ActivateInGameHUD();
-       //}
-    }
+    #region ClientRpc
 
     [ClientRpc]
     public void UpdateTimerClientRpc() 
     {
-        //waitingText.text = "La partida empieza en " + timer;
-        //if (timer == 0)
-        //{
-        //    ActivateInGameHUD();
-        //}
         if (GameManager.Singleton.state.Value == GameManager.State.Waiting)
         {
-            //waitingText.text = "La partida empieza en " + timer;
-
-            waitingText.text = "La partida comenzar en breve";
+            waitingText.text = "La partida comenzará en breve";
         }
 
         if (GameManager.Singleton.state.Value == GameManager.State.Game)
@@ -376,7 +322,5 @@ public class UIManager : NetworkBehaviour
         return success;
     }
 
-    #endregion
-
-    
+    #endregion   
 }

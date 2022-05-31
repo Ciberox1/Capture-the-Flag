@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Unity.Netcode;
-using System;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CapsuleCollider2D))]
@@ -12,6 +8,7 @@ public class PlayerController : NetworkBehaviour
 {
 
     #region Variables
+
     // prefab de la bala que se dispara
     [SerializeField] Bullet bulletPrefab;
 
@@ -57,7 +54,6 @@ public class PlayerController : NetworkBehaviour
         handler.OnMove.AddListener(UpdatePlayerVisualsServerRpc);
         handler.OnJump.AddListener(PerformJumpServerRpc);
         handler.OnMoveFixedUpdate.AddListener(UpdatePlayerPositionServerRpc);
-        // se vincula la función de disparo al botón de disparo
         handler.OnFire.AddListener(Shoot);
 
         FlipSprite.OnValueChanged += OnFlipSpriteValueChanged;
@@ -196,8 +192,7 @@ public class PlayerController : NetworkBehaviour
         // la dirección se calcula antes para evitar que se use la posición del servidor
         Vector3 dir = player.transform.GetChild(0).position - player.transform.position;
         dir.Normalize();
-        // pide al servidor que ejecute el disparo
-        int id = GetComponent<NetworkObject>().GetInstanceID();
+
         PlayerShootServerRpc(dir);
     }
 

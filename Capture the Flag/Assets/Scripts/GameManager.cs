@@ -5,6 +5,8 @@ using Unity.Netcode;
 
 public class GameManager : NetworkBehaviour
 {
+    #region Variables
+
     private static GameManager _instance; // Variable para el singleton
 
     private const int MAX_PLAYERS = 4;
@@ -15,11 +17,11 @@ public class GameManager : NetworkBehaviour
     public int timer = COUNTDOWN_TIME;
 
     public Dictionary<int, Player> players = new Dictionary<int, Player>();
-    //public Dictionary<ulong, Player> players = new Dictionary<ulong, Player>();
 
     public NetworkVariable<State> state = new NetworkVariable<State>(State.Lobby);
     public NetworkVariable<int> playersReady = new NetworkVariable<int>(0);
 
+    #endregion
     // Usamos esto para acceder a elementos del GameManager en otras clases que los necesiten
     public static GameManager Singleton
     {
@@ -38,10 +40,26 @@ public class GameManager : NetworkBehaviour
             return _instance;
         }
     }
+
+    #region Network methods
+
     public void EnableApprovalCallback()
     {
         NetworkManager.Singleton.ConnectionApprovalCallback += ApprovalCheck;
-    } 
+    }
+
+    //Metodo para comprobar si pueden entrar, no deja si ya hay un maximo de jugadores
+    private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkManager.ConnectionApprovedDelegate callback)
+    {
+        bool approve = players.Keys.Count < MAX_PLAYERS;
+        Vector3 spawnPosition = SetPlayerSpawnPosition();
+
+        callback(true, null, approve, spawnPosition, null);
+    }
+
+    #endregion
+
+    #region Game config methods
 
     public void AddPlayer(int playerId, Player player)
     {
@@ -50,38 +68,20 @@ public class GameManager : NetworkBehaviour
         
         if (IsServer) 
         {
-            //Comrpobar que se inicia la partida
+            //Comprobar que se inicia la partida
             if (players.Keys.Count >= MIN_PLAYERS && state.Value != State.Game) 
             {
                 //Empezar la partida
                 state.Value = State.Waiting;
                 
                 StartCoroutine(StartGame());
-
-                //Hacer que impriman el esperar a jugadores
             }
-
-
         }
     }
 
     public void DeletePlayer(int playerId)
     {
         players.Remove(playerId);
-    }
-
-    public Dictionary<int, Player> GetPlayers()
-    {
-        return players;
-    }
-
-    public void SetPlayerNames()
-    {
-        //Dictionary<int, Player> currentPlayers = GetPlayers();
-        foreach (int playerId in players.Keys)
-        {
-            players[playerId].playerName.text = players[playerId].givenName.Value.ToString();
-        }
     }
 
     private IEnumerator StartGame() 
@@ -100,59 +100,15 @@ public class GameManager : NetworkBehaviour
             timer--;
             print(timer);
         }
-
         //Empezar partida
         state.Value = State.Game;
-
         UIManager.Singleton.ActivateGameHUDClientRpc();
+
         //Respawn de los jugadores
         foreach (var player in players.Values) 
         {
             player.kills.Value = 0;
             DieAndRespawn(player);
-        }
-    }
-
-    //Metodo para comprobar si pueden entrar, no deja si ya hay un maximo de jugadores
-    private void ApprovalCheck(byte[] connectionData, ulong clientId, NetworkManager.ConnectionApprovedDelegate callback) 
-    {
-        bool approve = players.Keys.Count < MAX_PLAYERS;
-
-        Vector3 spawnPosition = SetPlayerSpawnPosition();
-
-        callback(true, null, approve, spawnPosition, null);
-    }
-
-    // El servidor busca un punto de spawn y coloca ahí al jugador
-    public Vector3 SetPlayerSpawnPosition()
-    {
-        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
-        int pos = Random.Range(0, spawnPositions.transform.childCount);
-        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
-        //transform.position = spawnPosition;
-        return spawnPosition;
-    }
-
-    // se envia al jugador a una nueva posicion de respawn y se le cura
-    public void DieAndRespawn(Player player)
-    {
-        player.playerHealth.Value = 6;      
-        player.transform.position = SetPlayerSpawnPosition();
-    }
-    
-    public void AddKill(Player player)
-    {
-        player.kills.Value++;
-        print(player.playerName.text + ": " + player.kills.Value);
-
-        CheckWinCondition(player);
-    }
-
-    private void CheckWinCondition(Player player)
-    {
-        if (state.Value == State.Game && player.kills.Value == WIN_CON)
-        {
-            StartCoroutine(FinishGame(player.playerName.text));
         }
     }
 
@@ -189,6 +145,53 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    #endregion
+
+    #region In-game methods
+
+    // El servidor busca un punto de spawn y coloca ahí al jugador
+    public Vector3 SetPlayerSpawnPosition()
+    {
+        GameObject spawnPositions = GameObject.FindWithTag("Respawn");
+        int pos = Random.Range(0, spawnPositions.transform.childCount);
+        Vector3 spawnPosition = spawnPositions.transform.GetChild(pos).position;
+
+        return spawnPosition;
+    }
+
+    public void SetPlayerNames()
+    {
+        foreach (int playerId in players.Keys)
+        {
+            players[playerId].playerName.text = players[playerId].givenName.Value.ToString();
+        }
+    }
+
+    // se envia al jugador a una nueva posicion de respawn y se le cura
+    public void DieAndRespawn(Player player)
+    {
+        player.playerHealth.Value = 6;      
+        player.transform.position = SetPlayerSpawnPosition();
+    }
+    
+    public void AddKill(Player player)
+    {
+        player.kills.Value++;
+        print(player.playerName.text + ": " + player.kills.Value);
+
+        CheckWinCondition(player);
+    }
+
+    private void CheckWinCondition(Player player)
+    {
+        if (state.Value == State.Game && player.kills.Value == WIN_CON)
+        {
+            StartCoroutine(FinishGame(player.playerName.text));
+        }
+    }
+
+    #endregion
+    
     public enum State 
     {
         Lobby, 
