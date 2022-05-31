@@ -60,6 +60,8 @@ public class GameManager : NetworkBehaviour
 
                 //Hacer que impriman el esperar a jugadores
             }
+
+
         }
     }
 

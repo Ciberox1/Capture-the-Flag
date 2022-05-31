@@ -92,6 +92,7 @@ public class UIManager : NetworkBehaviour
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
+        CheckWait();
         //UpdateTimer(GameManager.Singleton.timer); 
     }
 
@@ -136,6 +137,12 @@ public class UIManager : NetworkBehaviour
     private void DeactivateWin()
     {
         win.SetActive(false);
+    }
+
+    private void CheckWait()
+    {
+        if (GameManager.Singleton.state.Value == GameManager.State.Game)
+            ActivateInGameHUD();
     }
 
     public void UpdateLifeUI(int hitpoints)
