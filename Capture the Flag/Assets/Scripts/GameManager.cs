@@ -51,7 +51,7 @@ public class GameManager : NetworkBehaviour
         if (IsServer) 
         {
             //Comrpobar que se inicia la partida
-            if (players.Keys.Count >= MIN_PLAYERS) 
+            if (players.Keys.Count >= MIN_PLAYERS && state.Value != State.Game) 
             {
                 //Empezar la partida
                 state.Value = State.Waiting;
@@ -158,8 +158,8 @@ public class GameManager : NetworkBehaviour
     {
         //Terminar partida
         state.Value = State.Finish;
-        print("Se acabo esto, el ganador es " + winnerName);
-        yield return new WaitForSeconds(3);
+        UIManager.Singleton.WinClientRpc(winnerName);
+        yield return new WaitForSeconds(5);
 
         //Respawn de los jugadores
         foreach (var player in players.Values)
@@ -167,6 +167,8 @@ public class GameManager : NetworkBehaviour
             player.kills = new NetworkVariable<int>(0);
             DieAndRespawn(player);
         }
+
+        UIManager.Singleton.WinClientRpc();
     }
 
     public void CancelGame()

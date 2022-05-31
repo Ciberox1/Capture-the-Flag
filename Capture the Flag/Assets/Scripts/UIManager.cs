@@ -41,6 +41,10 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private GameObject waiting;
     [SerializeField] private Text waitingText;
 
+    [Header("Win")]
+    [SerializeField] private GameObject win;
+    [SerializeField] private Text winText;
+
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
@@ -88,7 +92,7 @@ public class UIManager : NetworkBehaviour
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
-        UpdateTimer(GameManager.Singleton.timer); 
+        //UpdateTimer(GameManager.Singleton.timer); 
     }
 
     #endregion
@@ -122,6 +126,16 @@ public class UIManager : NetworkBehaviour
         lobby.SetActive(false);
         waiting.SetActive(false);
         inGameHUD.SetActive(true);
+    }
+
+    private void ActivateWin()
+    {
+        win.SetActive(true);
+    }
+
+    private void DeactivateWin()
+    {
+        win.SetActive(false);
     }
 
     public void UpdateLifeUI(int hitpoints)
@@ -201,8 +215,6 @@ public class UIManager : NetworkBehaviour
     // Cuando el jugador pulse el botón de preparado se unirá a la partida
     private void PlayerReady()
     {
-        ActivateWaiting();
-
         // Si el jugador no ha dado un nombre, se le asignará uno.
         if (inputFieldName.text == "")
         {
@@ -211,14 +223,23 @@ public class UIManager : NetworkBehaviour
 
         if (hosting)
         {
+            ActivateWaiting();
             GameManager.Singleton.EnableApprovalCallback();
             NetworkManager.Singleton.StartHost();
-            //ActivateInGameHUD();
         }
         else 
         {
-            NetworkManager.Singleton.StartClient();
-            //ActivateInGameHUD();
+            if (GameManager.Singleton.players.Count >= 2)
+            {
+                ActivateInGameHUD();
+                NetworkManager.Singleton.StartClient();
+            }
+            else
+            {
+                ActivateWaiting();
+                NetworkManager.Singleton.StartClient();
+            }
+
         }
     }
 
@@ -287,6 +308,19 @@ public class UIManager : NetworkBehaviour
     {
         ActivateWaiting();
         waitingText.text = "Esperando jugadores...";
+    }
+
+    [ClientRpc]
+    public void WinClientRpc(string player)
+    {
+        ActivateWin();
+        winText.text = "El jugador ganador es " + player;
+    }
+
+    [ClientRpc]
+    public void WinClientRpc()
+    {
+        DeactivateWin();
     }
 
     [ClientRpc]
