@@ -41,6 +41,10 @@ public class UIManager : NetworkBehaviour
     [SerializeField] private GameObject waiting;
     [SerializeField] private Text waitingText;
 
+    [Header("Win")]
+    [SerializeField] private GameObject win;
+    [SerializeField] private Text winText;
+
     [Header("In-Game HUD")]
     [SerializeField] private GameObject inGameHUD;
     [SerializeField] RawImage[] heartsUI = new RawImage[3];
@@ -122,6 +126,16 @@ public class UIManager : NetworkBehaviour
         lobby.SetActive(false);
         waiting.SetActive(false);
         inGameHUD.SetActive(true);
+    }
+
+    private void ActivateWin()
+    {
+        win.SetActive(true);
+    }
+
+    private void DeactivateWin()
+    {
+        win.SetActive(false);
     }
 
     public void UpdateLifeUI(int hitpoints)
@@ -287,6 +301,19 @@ public class UIManager : NetworkBehaviour
     {
         ActivateWaiting();
         waitingText.text = "Esperando jugadores...";
+    }
+
+    [ClientRpc]
+    public void WinClientRpc(string player)
+    {
+        ActivateWin();
+        winText.text = "El jugador ganador es " + player;
+    }
+
+    [ClientRpc]
+    public void WinClientRpc()
+    {
+        DeactivateWin();
     }
 
     [ClientRpc]
