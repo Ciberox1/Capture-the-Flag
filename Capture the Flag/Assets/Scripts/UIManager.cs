@@ -137,7 +137,6 @@ public class UIManager : NetworkBehaviour
 
     private void CheckWait()
     {
-        if (GameManager.Singleton.state.Value == GameManager.State.Finish) { return; }
         if (GameManager.Singleton.state.Value == GameManager.State.Game)
             ActivateInGameHUD();
     }
