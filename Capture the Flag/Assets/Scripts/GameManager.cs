@@ -51,7 +51,7 @@ public class GameManager : NetworkBehaviour
         if (IsServer) 
         {
             //Comrpobar que se inicia la partida
-            if (players.Keys.Count >= MIN_PLAYERS) 
+            if (players.Keys.Count >= MIN_PLAYERS && state.Value != State.Game) 
             {
                 //Empezar la partida
                 state.Value = State.Waiting;

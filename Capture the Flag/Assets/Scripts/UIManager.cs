@@ -92,7 +92,7 @@ public class UIManager : NetworkBehaviour
     private void OnGUI()
     {
         GameManager.Singleton.SetPlayerNames();
-        UpdateTimer(GameManager.Singleton.timer); 
+        //UpdateTimer(GameManager.Singleton.timer); 
     }
 
     #endregion
@@ -215,8 +215,6 @@ public class UIManager : NetworkBehaviour
     // Cuando el jugador pulse el botón de preparado se unirá a la partida
     private void PlayerReady()
     {
-        ActivateWaiting();
-
         // Si el jugador no ha dado un nombre, se le asignará uno.
         if (inputFieldName.text == "")
         {
@@ -225,14 +223,23 @@ public class UIManager : NetworkBehaviour
 
         if (hosting)
         {
+            ActivateWaiting();
             GameManager.Singleton.EnableApprovalCallback();
             NetworkManager.Singleton.StartHost();
-            //ActivateInGameHUD();
         }
         else 
         {
-            NetworkManager.Singleton.StartClient();
-            //ActivateInGameHUD();
+            if (GameManager.Singleton.players.Count >= 2)
+            {
+                ActivateInGameHUD();
+                NetworkManager.Singleton.StartClient();
+            }
+            else
+            {
+                ActivateWaiting();
+                NetworkManager.Singleton.StartClient();
+            }
+
         }
     }
 
