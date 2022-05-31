@@ -15,6 +15,7 @@ public class Player : NetworkBehaviour
     public NetworkVariable<int> playerHealth;
     public NetworkVariable<int> character;
     public NetworkVariable<FixedString64Bytes> givenName; // nombre del jugador dado a UIManager
+    public NetworkVariable<int> kills;
 
     AnimationHandler animationHandler;
     Animator animator;
@@ -32,6 +33,7 @@ public class Player : NetworkBehaviour
         State = new NetworkVariable<PlayerState>();
         playerHealth = new NetworkVariable<int>(6);
         givenName = new NetworkVariable<FixedString64Bytes>("");
+        kills = new NetworkVariable<int>(0);
 
         animationHandler = GetComponent<AnimationHandler>();
         animator = GetComponent<Animator>();
@@ -56,6 +58,11 @@ public class Player : NetworkBehaviour
         character.OnValueChanged -= OnCharacterValueChanged;
     }
 
+    private void OnDestroy()
+    {
+        GameManager.Singleton.DeletePlayer(GetComponent<NetworkObject>().GetInstanceID());
+        GameManager.Singleton.CancelGame();
+    }
     #endregion
 
     #region Config Methods
@@ -113,8 +120,6 @@ public class Player : NetworkBehaviour
         State.Value = state;
     }
 
-
-
     // Poner la vida al máximo cuando el jugador reaparece
     [ServerRpc]
     public void DieAndRespawnServerRpc()
@@ -170,7 +175,8 @@ public class Player : NetworkBehaviour
     // asigna la animación correspondiente
     private void SetCharacter(int character) 
     {
-        animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
+        if (animator != null)
+            animator.runtimeAnimatorController = animationHandler.characterAnimation[character];
     }
 
     #endregion

@@ -163,7 +163,7 @@ public class PlayerController : NetworkBehaviour
 
         Bullet bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
         bullet.GetComponent<Rigidbody2D>().velocity = dir * bulletSpeed;
-        bullet.playerOwner = player.OwnerClientId; // guardamos la id del dueño de la bala
+        bullet.playerOwner = player; // guardamos el dueño de la bala
 
         bullet.GetComponent<NetworkObject>().Spawn(true);
     }
@@ -197,6 +197,7 @@ public class PlayerController : NetworkBehaviour
         Vector3 dir = player.transform.GetChild(0).position - player.transform.position;
         dir.Normalize();
         // pide al servidor que ejecute el disparo
+        int id = GetComponent<NetworkObject>().GetInstanceID();
         PlayerShootServerRpc(dir);
     }
 
