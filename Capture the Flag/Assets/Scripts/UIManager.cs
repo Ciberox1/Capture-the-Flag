@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 
-public class UIManager : MonoBehaviour
+public class UIManager : NetworkBehaviour
 {
 
     #region Variables
@@ -224,12 +224,12 @@ public class UIManager : MonoBehaviour
 
     public void WaitingForPlayers(int playerReady, int playeTotal) 
     {
-        WaitingForPlayersServerRpc(playerReady, playeTotal);
+        WaitingForPlayersClientRpc(playerReady, playeTotal);
     } 
 
     public void UpdateTimer(int timer) 
     {
-        UpdateTimerServerRpc(timer);
+        //UpdateTimerClientRpc(timer);
        // if (GameManager.Singleton.state.Value == GameManager.State.Waiting) 
        // {
        //     waitingText.text = "La partida empieza en " + timer;
@@ -242,8 +242,8 @@ public class UIManager : MonoBehaviour
        // }
     }
 
-    [ServerRpc]
-    private void WaitingForPlayersServerRpc(int playerReady, int playeTotal)
+    [ClientRpc]
+    private void WaitingForPlayersClientRpc(int playerReady, int playeTotal)
     {
         waitingText.text = "Hay " + playerReady + "/" + playeTotal + " jugadores listos";
     }
@@ -251,7 +251,8 @@ public class UIManager : MonoBehaviour
     [ServerRpc]
     private void UpdateTimerServerRpc(int timer)
     {
-        UpdateTimerClientRpc(timer);
+        
+        //UpdateTimerClientRpc(timer);
 
        //waitingText.text = "La partida empieza en " + timer;
        //if (timer == 0)
@@ -261,7 +262,7 @@ public class UIManager : MonoBehaviour
     }
 
     [ClientRpc]
-    private void UpdateTimerClientRpc(int timer) 
+    public void UpdateTimerClientRpc() 
     {
         //waitingText.text = "La partida empieza en " + timer;
         //if (timer == 0)
@@ -279,6 +280,19 @@ public class UIManager : MonoBehaviour
         {
             ActivateInGameHUD();
         }
+    }
+
+    [ClientRpc]
+    public void RestartWaitClientRpc()
+    {
+        ActivateWaiting();
+        waitingText.text = "Esperando jugadores...";
+    }
+
+    [ClientRpc]
+    public void ActivateGameHUDClientRpc()
+    {
+        ActivateInGameHUD();
     }
 
     #endregion
@@ -301,7 +315,6 @@ public class UIManager : MonoBehaviour
 
     private void StartServer()
     {
-        SetIPAndPort();
         if (!SetIPAndPort()) { return; }
         GameManager.Singleton.EnableApprovalCallback();
         NetworkManager.Singleton.StartServer();

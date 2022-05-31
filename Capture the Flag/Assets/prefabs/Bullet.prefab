@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 3625043607559282579, guid: 045b15ec09bba42448d89db77fa6f20a, type: 3}
+  m_Sprite: {fileID: -2413806693520163455, guid: ebe73ca9363db456bacf42c025bb4847, type: 3}
   m_Color: {r: 0.31132078, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e699ed4cce2d55c4ebc7b178b9a266b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerOwner: 0
+  playerOwner: {fileID: 0}
 --- !u!114 &1113283406066963854
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,7 +191,7 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1, y: 0.5}
+  m_Size: {x: 0.5, y: 0.5}
   m_Direction: 1
 --- !u!1 &2642075354294945829
 GameObject:
@@ -263,8 +263,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: 3625043607559282579, guid: 045b15ec09bba42448d89db77fa6f20a, type: 3}
+  m_SortingOrder: 1
+  m_Sprite: {fileID: 8177471321811730583, guid: 87aaca0a643d54397ba969dab4fc8875, type: 3}
   m_Color: {r: 0.8773585, g: 0.037246335, b: 0.037246335, a: 1}
   m_FlipX: 0
   m_FlipY: 0
